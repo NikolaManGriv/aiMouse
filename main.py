@@ -44,10 +44,9 @@ def main():
                     pinky_down= is_finger_down(hand_landmarks.landmark, PINKY_TIP, PINKY_MCP) 
 
                     if not index_down and pinky_down:
-                        print("bajé")
-                            #pyautogui.write("hello")
+                        pyautogui.press('down')
                     elif not index_down and not pinky_down :
-                        print("subí")
+                        pyautogui.press('up')
 
             cv2.imshow("Hands", frame)
 
