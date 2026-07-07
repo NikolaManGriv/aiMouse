@@ -6,13 +6,14 @@ import pyautogui
 RETURN_KEY: Final = 27  # this is for esc key
 MASK: Final = 0xFF
 INDEX_TIP: Final = 8
-INDEX_MCP: Final = 5
+INDEX_MCP: Final = 10  # using middle pip
 PINKY_TIP: Final = 20
 PINKY_MCP: Final = 17
 MIDDLE_TIP: Final = 12
 MIDDLE_MCP: Final = 9
 RING_TIP: Final = 16
 RING_MCP: Final = 13
+
 SMOOTHING_FACTOR = 5  # 20%
 
 
@@ -25,6 +26,8 @@ def main():
     mp_lines = mp.solutions.drawing_utils
 
     camera = cv2.VideoCapture(0)  # default camera
+    if not camera.isOpened():
+        return -1
     screen_width, screen_height = pyautogui.size()
 
     with mp_hands.Hands(
@@ -60,26 +63,33 @@ def main():
                     )
 
                     go_down = (
-                        not index_down and pinky_down and middle_down and ring_down
+                        not index_down and middle_down and pinky_down and ring_down
                     )
                     go_up = (
-                        not index_down and not pinky_down and middle_down and ring_down
+                        not index_down and middle_down and not pinky_down and ring_down
                     )
                     move_mouse = (
-                        not index_down and pinky_down and not middle_down and ring_down
-                    )
-                    drag_activated = (
-                        not index_down
-                        and not pinky_down
-                        and not middle_down
-                        and ring_down
+                        not index_down and not middle_down and pinky_down and ring_down
                     )
                     highlight = (
                         not index_down
                         and not middle_down
-                        and not ring_down
-                        and pinky_down
+                        and not pinky_down
+                        and ring_down
                     )
+                    ctrl_c = (
+                        not index_down
+                        and not middle_down
+                        and pinky_down
+                        and not ring_down
+                    )
+                    ctrl_v = (
+                        not index_down
+                        and not middle_down
+                        and not pinky_down
+                        and not ring_down
+                    )
+                    click = index_down and not middle_down and pinky_down and ring_down
 
                     if go_down:
                         pyautogui.press("down")
@@ -104,11 +114,16 @@ def main():
                         pyautogui.moveTo(curr_mouse_x, curr_mouse_y)
                         prev_x, prev_y = curr_mouse_x, curr_mouse_y
 
-                    elif drag_activated:
-                        pyautogui.mouseDown(button="left")
-
                     elif highlight:
                         pyautogui.mouseUp(button="left")
+                    elif ctrl_c:
+                        pyautogui.mouseDown(button="left")
+                        pyautogui.hotkey("ctrl", "c")
+
+                    elif ctrl_v:
+                        pyautogui.hotkey("ctrl", "v")
+                    elif click:
+                        pyautogui.click()
 
             cv2.imshow("Hands", frame)
 
@@ -116,7 +131,10 @@ def main():
                 break
     camera.release()
     cv2.destroyAllWindows()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    result = main()
+    if result == -1:
+        print("No camera detected")
