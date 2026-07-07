@@ -34,6 +34,7 @@ def main():
         min_detection_confidence=0.6, min_tracking_confidence=0.5, max_num_hands=1
     ) as model:
         prev_x, prev_y = 0, 0
+        copied = False
         while camera.isOpened():
             ret, frame = camera.read()
             if not ret:
@@ -107,21 +108,25 @@ def main():
                             int(middle_coords_y * screen_height),
                         )
                         curr_mouse_x, curr_mouse_y = (
-                            mouse_x + (mouse_x - prev_x) / SMOOTHING_FACTOR,
-                            mouse_y + (mouse_y - prev_y) / SMOOTHING_FACTOR,
+                            prev_x + (mouse_x - prev_x) / SMOOTHING_FACTOR,
+                            prev_y + (mouse_y - prev_y) / SMOOTHING_FACTOR,
                         )
                         pyautogui.PAUSE = 0
                         pyautogui.moveTo(curr_mouse_x, curr_mouse_y)
                         prev_x, prev_y = curr_mouse_x, curr_mouse_y
 
                     elif highlight:
-                        pyautogui.mouseUp(button="left")
-                    elif ctrl_c:
                         pyautogui.mouseDown(button="left")
-                        pyautogui.hotkey("ctrl", "c")
 
-                    elif ctrl_v:
+                    elif ctrl_c:
+                        pyautogui.mouseUp(button="left")
+                        pyautogui.hotkey("ctrl", "c")
+                        copied = True
+
+                    elif ctrl_v and copied:
+                        copied = False
                         pyautogui.hotkey("ctrl", "v")
+
                     elif click:
                         pyautogui.click()
 
